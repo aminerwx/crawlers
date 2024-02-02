@@ -21,6 +21,10 @@ func Maybe(err error) {
 	}
 }
 
+func ParseLink(link string) {
+
+}
+
 //func CategoryID(str string) []string {
 //	categories := []string{
 //		"Claviers",             // 1

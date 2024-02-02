@@ -1,8 +1,6 @@
 package main
 
 import (
-	"colly-test/src/crawler"
-	"colly-test/src/helper"
 	"context"
 	"fmt"
 	"log"
@@ -13,10 +11,12 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/joho/godotenv"
 
+	"github.com/aminerwx/crawlers/helper"
+	"github.com/aminerwx/crawlers/ultrapc/crawler"
 	"github.com/jackc/pgx/v5"
 )
 
-func main() {
+func main_ultra() {
 	_, err := migrate.New(
 		"file://db/migrations",
 		"postgres://postgres@localhost:5432/ultrapc?sslmode=disable")
@@ -30,11 +30,10 @@ func main() {
 	// helper.Maybe(os.WriteFile("ultrapc_links.txt", b, 0660))
 	articles, err := crawler.Crawler("./ultrapc_links.txt")
 	helper.Maybe(err)
-	//fmt.Println(len(articles))
+	// fmt.Println(len(articles))
 	InsertBulk(articles, "components", os.Getenv("DATABASE_URL"))
-	//DUMP to database
+	// DUMP to database
 	//	fmt.Println(item)
-
 }
 
 func InsertBulk(articles []crawler.Article, table string, uri string) {

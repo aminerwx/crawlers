@@ -2,113 +2,92 @@ package crawler
 
 import (
 	"fmt"
-	"github.com/gocolly/colly"
+	"strconv"
 	"strings"
+
+	"github.com/gocolly/colly"
 )
 
-func Crawler() {
-	fmt.Println("calling Crawler()...")
+type Product struct {
+	Name         string
+	Link         string
+	Menu         string
+	MenuLink     string
+	Category     string
+	CategoryLink string
+	Price        int
+	CurrentPrice int
+	Discount     int
 }
-func RemoveDuplicate[T comparable](sliceList []T) []T {
-	allKeys := make(map[T]bool)
-	var list []T
-	for _, item := range sliceList {
-		if _, value := allKeys[item]; !value {
-			allKeys[item] = true
-			list = append(list, item)
+
+func Crawler(url string, products *[]Product) {
+	// fmt.Println("calling Crawler()...")
+	c := colly.NewCollector(colly.Async(true), colly.UserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"))
+	pages := 0
+	totalPages(c, &pages)
+	c.Visit(url)
+	c.Wait()
+	for i := 1; i < pages+1; i++ {
+		var sb strings.Builder
+		sb.WriteString(url)
+		sb.WriteString("?jsf=jet-engine:shop_category&pagenum=")
+		sb.WriteString(strconv.Itoa(i))
+		getProducts(c, sb.String(), products)
+		if i == 1 {
+			break
 		}
 	}
-	return list
+	// fmt.Printf("%v Total Pages: %v\n", url, pages)
+	// fmt.Println(len(products))
 }
 
-// submenu			 categorySelector	categorysubmenusel
-// "div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > a:nth-child(1)"
-// "div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > a:nth-child(1)"
-// "div:nth-child(2) > div:nth-child(1) > a:nth-child(1) > span:nth-child(1) > span:nth-child(1)"
-// div:nth-child(2) > div:nth-child(1)
-// div:nth-child(2) > div:nth-child(2)
-
-func GetLinks() []string {
-	c := colly.NewCollector()
-	wantedMenu := []string{
-		"#home-menu > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(6)",
-		"#home-menu > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(7)",
-		"#home-menu > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(8)",
-		"#home-menu > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(9)",
-	}
-	var linkItems []string
-	//var linkCache = make(map[string]bool)
-	//menuSelector := wantedMenu[0]
-	for _, menuSelector := range wantedMenu {
-		GetData(c, menuSelector, &linkItems)
-	}
-
-	c.Visit("https://setupgame.ma/")
-
-	return RemoveDuplicate(linkItems)
-}
-func GetData(c *colly.Collector, menuSelector string, linkItems *[]string) {
-	c.OnHTML(menuSelector, func(element *colly.HTMLElement) {
-		categorySelector := menuSelector + " div:nth-child(2) > div"
-		element.ForEach(categorySelector, func(i int, category *colly.HTMLElement) {
-			childNodes := category.DOM.Find("div:nth-child(2)").Nodes
-			//categoryLink := strings.ReplaceAll(category.DOM.Find("a:nth-child(1)").AttrOr("href", "-"), linkReplacer, "")
-			if len(childNodes) == 2 {
-				category.ForEach("div:nth-child(2) > div", func(i int, child *colly.HTMLElement) {
-					subCategorySelector := "a:nth-child(1)"
-					subCategoryURL := child.DOM.Find(subCategorySelector).AttrOr("href", "-")
-					//if !linkCache[subCategoryURL] {
-					//	linkItems = append(linkItems, subCategoryURL)
-					//	linkCache[subCategoryURL] = true
-					//}
-					*linkItems = append(*linkItems, subCategoryURL)
-				})
-			}
-			if len(childNodes) == 0 {
-				categoryLink := category.DOM.Find("a:nth-child(1)").AttrOr("href", "-")
-				//if !linkCache[categoryLink] {
-				//	linkItems = append(linkItems, categoryLink)
-				//	linkCache[categoryLink] = true
-				//}
-				*linkItems = append(*linkItems, categoryLink)
-			}
-		})
+func totalPages(c *colly.Collector, pages *int) {
+	c.OnHTML(".jet-engine-query-count", func(element *colly.HTMLElement) {
+		items, _ := strconv.Atoi(element.Text)
+		if items > 0 {
+			*pages = (items / 16) + 1
+		}
 	})
 }
-func getData(c *colly.Collector, linkItems *[]string) {
-	linkReplacer := "https://setupgame.ma/categorie-produit"
-	menuSelector := "#home-menu > div > div > div > div:nth-child(6)"
-	c.OnHTML(menuSelector, func(element *colly.HTMLElement) {
-		// composants
-		//subMenuSelector := menuSelector + " > div:nth-child(2)"
 
-		// subcomposants cpu / mobo / ram ....
-		// div > div.menu-item.menu-item-type-taxonomy.menu-item-object-product_cat.menu-item-has-children.jet-custom-nav__item.jet-custom-nav__item-66463.purple-border
-		categorySelector := "div:nth-child(2) > div"
-		element.ForEach(categorySelector, func(i int, category *colly.HTMLElement) {
-			childNodes := category.DOM.Find("div").Nodes
-			categoryLink := strings.ReplaceAll(category.DOM.Find("a").AttrOr("href", "-"), linkReplacer, "")
-			if len(childNodes) > 0 {
-				subCategorySelector := "div > div"
-				category.ForEach(subCategorySelector, func(i int, child *colly.HTMLElement) {
-					subCategoryLinkSelector := "a:nth-child(1)"
-					subCategoryLink := strings.ReplaceAll(child.DOM.Find(subCategoryLinkSelector).AttrOr("href", "-"), linkReplacer, "")
-
-					//names := strings.Split(child.Text, ":")
-					////fmt.Println(names)
-					//if len(names) == 2 {
-					//	linkItem.CategoryName = names[0]
-					//	linkItem.SubCategoryName = names[1]
-					//}
-					//if len(names) == 1 {
-					//	linkItem.SubCategoryName = names[0]
-					//}
-					*linkItems = append(*linkItems, subCategoryLink)
-				})
-			} else {
-				*linkItems = append(*linkItems, categoryLink)
+func getProducts(c *colly.Collector, url string, products *[]Product) {
+	productListSelector := ".jet-listing-grid"
+	d := c.Clone()
+	d.OnHTML(productListSelector, func(element *colly.HTMLElement) {
+		menuSelector := "section.elementor-element:nth-child(2) > div.elementor-element > div.elementor-element > div.elementor-element:nth-child(1) > div:nth-child(1) > nav.woocommerce-breadcrumb:nth-child(1) > a:nth-child(2)"
+		categorySelector := "div.elementor-widget-container > nav.woocommerce-breadcrumb > a:nth-child(3)"
+		productMenu := element.DOM.Find(menuSelector).Text()
+		productMenuLink := element.DOM.Find(menuSelector).AttrOr("href", "-")
+		productCategory := element.DOM.Find(categorySelector).Text()
+		productCategoryLink := element.DOM.Find(categorySelector).AttrOr("href", "-")
+		fmt.Println("---->", productMenu, productMenuLink, productCategory, productCategoryLink)
+		element.ForEach("div.jet-listing-grid__items > div.jet-listing-grid__item", func(_ int, product *colly.HTMLElement) {
+			// nameSelector := "div.jet-listing-grid__item:nth-child(1) > div:nth-child(1) > div:nth-child(1) > a:nth-child(1) > div:nth-child(3) > div:nth-child(1) > div:nth-child(1)"
+			productPriceSelector := "div:nth-child(1) > a:nth-child(1) > div:nth-child(4) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)"
+			productCurrentPriceSelector := "div:nth-child(1) > a:nth-child(1) > div:nth-child(4) > div:nth-child(2) > div:nth-child(1) > span:nth-child(1)"
+			productName := product.DOM.Find("div:nth-child(1) > a.elementor-element > div > div > div.jet-listing-dynamic-field__content").Text()
+			productLink := product.DOM.Find("div:nth-child(1) > a.elementor-element").AttrOr("href", "-")
+			productPriceStr := strings.ReplaceAll(product.DOM.Find(productPriceSelector).Text(), ",00 MAD", "")
+			productCurrentPriceStr := strings.ReplaceAll(product.DOM.Find(productCurrentPriceSelector).Text(), ",00 MAD", "")
+			if productCurrentPriceStr == "" {
+				productCurrentPriceStr = "0"
 			}
+			productPrice, _ := strconv.Atoi(productPriceStr)
+			productCurrentPrice, _ := strconv.Atoi(productCurrentPriceStr)
+			*products = append(*products, Product{
+				Name:         productName,
+				Link:         productLink,
+				Menu:         productMenu,
+				MenuLink:     productMenuLink,
+				Category:     productCategory,
+				CategoryLink: productCategoryLink,
+				Price:        productPrice,
+				CurrentPrice: productCurrentPrice,
+				Discount:     productPrice - productCurrentPrice,
+			})
+			// fmt.Println(productName, productLink, productPrice, productCurrentPrice)
 		})
-		//fmt.Println(linkItems)
 	})
+	d.Visit(url)
+	d.Wait()
 }

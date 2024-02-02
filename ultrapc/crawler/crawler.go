@@ -1,7 +1,6 @@
 package crawler
 
 import (
-	"colly-test/src/helper"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aminerwx/crawlers/helper"
 	"github.com/gocolly/colly"
 )
 
