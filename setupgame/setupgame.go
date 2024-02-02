@@ -19,12 +19,11 @@ func Runner() {
 	for i, link := range links {
 		fmt.Println("###", link)
 		crawler.Crawler(link, &products)
-		if i == 1 {
+		if i == 0 {
 			break
 		}
 	}
 	fmt.Println(products)
-	// crawler.Crawler("https://setupgame.ma/categorie-produit/composants-gaming/boitier-gamer/")
 }
 
 func Init(products *[]crawler.Product) {
