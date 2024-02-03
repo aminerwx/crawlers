@@ -28,8 +28,8 @@ func Runner() {
 
 func Init(products *[]crawler.Product) {
 	_, err := migrate.New(
-		"file://db/migrations",
-		"postgres://postgres@localhost:5432/ultrapc?sslmode=disable")
+		"file://migrations",
+		"postgres://postgres@localhost:5432/crawlers?sslmode=disable")
 	helper.Maybe(err)
 	helper.Maybe(godotenv.Load())
 	// m.Up()
@@ -57,31 +57,43 @@ func InsertBulk(products *[]crawler.Product, table string, uri string) {
 		context.Background(),
 		pgx.Identifier{table},
 		[]string{
-			"price",
-			"stock",
 			"name",
 			"url",
-			"img_url",
-			"category",
-			"category_url",
-			"subcategory",
-			"subcategory_url",
 			"menu",
 			"menu_url",
+			"category",
+			"category_url",
+			"platform",
+			"price",
+			"stock",
+			"current_price",
+			"discount",
 		},
+		/*	Name         string
+			Link         string
+			Menu         string
+			MenuLink     string
+			Category     string
+			CategoryLink string
+			Platform     string
+			Price        int
+			Stock        int
+			CurrentPrice int
+			Discount     int
+		*/
 		pgx.CopyFromSlice(len(*products), func(i int) ([]any, error) {
 			return []any{
-				(*products)[i].Price,
-				//(*products)[i].Stock,
 				(*products)[i].Name,
-				//(*products)[i].URL,
-				//(*products)[i].ImageURL,
-				//(*products)[i].CategoryName,
-				//(*products)[i].CategoryURL,
-				//(*products)[i].SubCategoryName,
-				//(*products)[i].SubCategoryURL,
-				//(*products)[i].MenuName,
-				//(*products)[i].MenuURL,
+				(*products)[i].Link,
+				(*products)[i].Menu,
+				(*products)[i].MenuLink,
+				(*products)[i].Category,
+				(*products)[i].CategoryLink,
+				(*products)[i].Platform,
+				(*products)[i].Price,
+				(*products)[i].Stock,
+				(*products)[i].CurrentPrice,
+				(*products)[i].Discount,
 			}, nil
 		}),
 	)

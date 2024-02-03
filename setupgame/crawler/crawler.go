@@ -16,7 +16,9 @@ type Product struct {
 	MenuLink     string
 	Category     string
 	CategoryLink string
+	Platform     string
 	Price        int
+	Stock        int
 	CurrentPrice int
 	Discount     int
 }
@@ -76,6 +78,7 @@ func getProducts(c *colly.Collector, url string, products *[]Product) {
 				Price:        productPrice,
 				CurrentPrice: productCurrentPrice,
 				Discount:     productPrice - productCurrentPrice,
+				Platform:     "setupgame",
 			})
 		})
 	})
