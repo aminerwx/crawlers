@@ -14,8 +14,6 @@ import (
 )
 
 type Article struct {
-	Price           int    `json:"price"`
-	Stock           int    `json:"stock"`
 	Name            string `json:"name"`
 	URL             string `json:"url"`
 	ImageURL        string `json:"img_url"`
@@ -25,6 +23,8 @@ type Article struct {
 	SubCategoryURL  string `json:"subcategory_url"`
 	MenuName        string `json:"menu"`
 	MenuURL         string `json:"menu_url"`
+	Price           int    `json:"price"`
+	Stock           int    `json:"stock"`
 }
 
 type ArticleSelector struct {
@@ -36,7 +36,6 @@ type ArticleSelector struct {
 }
 
 func Crawler(linksFilePath string) ([]Article, error) {
-
 	// Read links.txt
 	data, err := os.ReadFile(linksFilePath)
 	helper.Maybe(err)
@@ -45,10 +44,10 @@ func Crawler(linksFilePath string) ([]Article, error) {
 	links = links[:len(links)-1]
 	// fmt.Print(links)
 	var productData []Article
-	for _, url := range links {
-		//if i == 3 {
-		//	break
-		//}
+	for i, url := range links {
+		if i == 1 {
+			break
+		}
 
 		pages, err := GetProductPages(url)
 		fmt.Println("total pages = ", pages)
@@ -78,7 +77,7 @@ func GetProduct(url string) ([]Article, error) {
 
 	helper.Maybe(c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 2, RandomDelay: 4 * time.Second, Delay: 4}))
 
-	c.OnError(func(r *colly.Response, err error) {
+	c.OnError(func(_ *colly.Response, err error) {
 		log.Println(err.Error())
 	})
 
@@ -87,7 +86,7 @@ func GetProduct(url string) ([]Article, error) {
 	})
 
 	c.OnHTML("ol.list-unstyled", func(navBar *colly.HTMLElement) {
-		navBar.ForEach("li.breadcrumb-item:not(:first-child)", func(i int, child *colly.HTMLElement) {
+		navBar.ForEach("li.breadcrumb-item:not(:first-child)", func(_ int, child *colly.HTMLElement) {
 			bread := []string{
 				child.ChildText("a > span"),
 				strings.ReplaceAll(child.ChildAttr("a", "href"), "https://www.ultrapc.ma", ""),
@@ -107,7 +106,7 @@ func GetProduct(url string) ([]Article, error) {
 			Stock:    "div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > strong:nth-child(2)",
 		}
 		pattern := regexp.MustCompile(`\d+`)
-		h.ForEach("article.product-miniature", func(i int, el *colly.HTMLElement) {
+		h.ForEach("article.product-miniature", func(_ int, el *colly.HTMLElement) {
 			article := Article{}
 			price, _ := strconv.Atoi(pattern.FindString(helper.SpaceMap(el.ChildText(articleSelector.Price))))
 			article.Name = el.ChildText(articleSelector.Name)
@@ -162,7 +161,7 @@ func GetProductPages(url string) (int, error) {
 	)
 	helper.Maybe(c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 2}))
 
-	c.OnError(func(r *colly.Response, err error) {
+	c.OnError(func(_ *colly.Response, err error) {
 		log.Println(err.Error())
 	})
 
@@ -171,7 +170,7 @@ func GetProductPages(url string) (int, error) {
 	})
 
 	c.OnHTML(".pagination", func(el *colly.HTMLElement) {
-		el.ForEach("li.page-item", func(i int, h *colly.HTMLElement) {
+		el.ForEach("li.page-item", func(_ int, _ *colly.HTMLElement) {
 			if !hasPages {
 				pages++
 			}
@@ -180,7 +179,6 @@ func GetProductPages(url string) (int, error) {
 			pages--
 		}
 		hasPages = true
-
 	})
 
 	helper.Maybe(c.Visit(url))

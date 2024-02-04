@@ -68,6 +68,10 @@ func getProducts(c *colly.Collector, url string, products *[]Product) {
 			}
 			productPrice, _ := strconv.Atoi(productPriceStr)
 			productCurrentPrice, _ := strconv.Atoi(productCurrentPriceStr)
+			discount := 0
+			if productCurrentPrice > 0 {
+				discount = productPrice - productCurrentPrice
+			}
 			*products = append(*products, Product{
 				Name:         productName,
 				Link:         productLink,
@@ -77,7 +81,7 @@ func getProducts(c *colly.Collector, url string, products *[]Product) {
 				CategoryLink: "/" + breadcrumb[1],
 				Price:        productPrice,
 				CurrentPrice: productCurrentPrice,
-				Discount:     productPrice - productCurrentPrice,
+				Discount:     discount,
 				Platform:     "setupgame",
 			})
 		})

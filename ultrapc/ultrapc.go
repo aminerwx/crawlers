@@ -1,4 +1,4 @@
-package main
+package ultrapc
 
 import (
 	"context"
@@ -18,8 +18,8 @@ import (
 
 func Runner() {
 	_, err := migrate.New(
-		"file://db/migrations",
-		"postgres://postgres@localhost:5432/ultrapc?sslmode=disable")
+		"file://migration",
+		"postgres://postgres@localhost:5432/crawlers?sslmode=disable")
 	helper.Maybe(err)
 	helper.Maybe(godotenv.Load())
 	// m.Up()
@@ -28,7 +28,7 @@ func Runner() {
 	// combined_links := strings.Join(links, "\n")
 	// b := []byte(combined_links)
 	// helper.Maybe(os.WriteFile("ultrapc_links.txt", b, 0660))
-	articles, err := crawler.Crawler("./ultrapc_links.txt")
+	articles, err := crawler.Crawler("ultrapc/ultrapc_links.txt")
 	helper.Maybe(err)
 	// fmt.Println(len(articles))
 	InsertBulk(articles, "components", os.Getenv("DATABASE_URL"))

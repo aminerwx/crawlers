@@ -1,10 +1,13 @@
 package main
 
-import "github.com/aminerwx/crawlers/setupgame"
+import (
+	"github.com/aminerwx/crawlers/ultrapc"
+)
 
 func main() {
 	// TODO:
 	// - setupgame migration files
 	// - insert scraped products
-	setupgame.Runner()
+	//	setupgame.Runner()
+	ultrapc.Runner()
 }

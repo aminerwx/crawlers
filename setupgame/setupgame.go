@@ -9,6 +9,8 @@ import (
 	"github.com/aminerwx/crawlers/helper"
 	"github.com/aminerwx/crawlers/setupgame/crawler"
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 )
@@ -23,17 +25,18 @@ func Runner() {
 			break
 		}
 	}
-	fmt.Println(products)
+	Init(&products)
+	// fmt.Println(products)
 }
 
 func Init(products *[]crawler.Product) {
-	_, err := migrate.New(
-		"file://migrations",
+	m, err := migrate.New(
+		"file://migration",
 		"postgres://postgres@localhost:5432/crawlers?sslmode=disable")
 	helper.Maybe(err)
 	helper.Maybe(godotenv.Load())
-	// m.Up()
-	// m.Down()
+	m.Down()
+	m.Up()
 	// links := menu.GetMenu()
 	// combined_links := strings.Join(links, "\n")
 	// b := []byte(combined_links)
@@ -65,9 +68,9 @@ func InsertBulk(products *[]crawler.Product, table string, uri string) {
 			"category_url",
 			"platform",
 			"price",
-			"stock",
 			"current_price",
 			"discount",
+			"stock",
 		},
 		/*	Name         string
 			Link         string
@@ -91,9 +94,9 @@ func InsertBulk(products *[]crawler.Product, table string, uri string) {
 				(*products)[i].CategoryLink,
 				(*products)[i].Platform,
 				(*products)[i].Price,
-				(*products)[i].Stock,
 				(*products)[i].CurrentPrice,
 				(*products)[i].Discount,
+				(*products)[i].Stock,
 			}, nil
 		}),
 	)
