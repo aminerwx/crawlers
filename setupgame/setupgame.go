@@ -18,30 +18,25 @@ import (
 func Runner() {
 	links := crawler.GetLinks()
 	var products []crawler.Product
-	for i, link := range links {
+	for _, link := range links {
 		fmt.Println("###", link)
 		crawler.Crawler(link, &products)
-		if i == 0 {
-			break
-		}
 	}
 	Init(&products)
 	// fmt.Println(products)
 }
 
 func Init(products *[]crawler.Product) {
-	m, err := migrate.New(
-		"file://migration",
-		"postgres://postgres@localhost:5432/crawlers?sslmode=disable")
-	helper.Maybe(err)
 	helper.Maybe(godotenv.Load())
-	m.Down()
-	m.Up()
+	_, err := migrate.New(
+		"file://migration",
+		os.Getenv("DATABASE_URL"))
+	helper.Maybe(err)
 	// links := menu.GetMenu()
 	// combined_links := strings.Join(links, "\n")
 	// b := []byte(combined_links)
 	// helper.Maybe(os.WriteFile("ultrapc_links.txt", b, 0660))
-	helper.Maybe(err)
+	// helper.Maybe(err)
 	// fmt.Println(len(articles))
 	InsertBulk(products, "components", os.Getenv("DATABASE_URL"))
 	// DUMP to database

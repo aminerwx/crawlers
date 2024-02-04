@@ -5,8 +5,6 @@
 *.so
 *.dylib
 
-bin/*
-
 # Test binary, built with `go test -c`
 *.test
 
@@ -21,3 +19,5 @@ go.work
 .env
 .idea
 */.idea
+bin/*
+ultrapc/ultrapc_links.txt

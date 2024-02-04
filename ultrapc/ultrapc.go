@@ -17,13 +17,11 @@ import (
 )
 
 func Runner() {
+	helper.Maybe(godotenv.Load())
 	_, err := migrate.New(
 		"file://migration",
-		"postgres://postgres@localhost:5432/crawlers?sslmode=disable")
+		os.Getenv("DATABASE_URL"))
 	helper.Maybe(err)
-	helper.Maybe(godotenv.Load())
-	// m.Up()
-	// m.Down()
 	// links := menu.GetMenu()
 	// combined_links := strings.Join(links, "\n")
 	// b := []byte(combined_links)
@@ -49,6 +47,8 @@ func InsertBulk(articles []crawler.Article, table string, uri string) {
 		pgx.Identifier{table},
 		[]string{
 			"price",
+			"current_price",
+			"discount",
 			"stock",
 			"name",
 			"url",
@@ -58,10 +58,13 @@ func InsertBulk(articles []crawler.Article, table string, uri string) {
 			"subcategory_url",
 			"menu",
 			"menu_url",
+			"platform",
 		},
 		pgx.CopyFromSlice(len(articles), func(i int) ([]any, error) {
 			return []any{
 				articles[i].Price,
+				articles[i].CurrentPrice,
+				articles[i].Discount,
 				articles[i].Stock,
 				articles[i].Name,
 				articles[i].URL,
@@ -71,6 +74,7 @@ func InsertBulk(articles []crawler.Article, table string, uri string) {
 				articles[i].SubCategoryURL,
 				articles[i].MenuName,
 				articles[i].MenuURL,
+				articles[i].Platform,
 			}, nil
 		}),
 	)

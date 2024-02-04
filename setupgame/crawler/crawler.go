@@ -36,9 +36,6 @@ func Crawler(url string, products *[]Product) {
 		sb.WriteString("?jsf=jet-engine:shop_category&pagenum=")
 		sb.WriteString(strconv.Itoa(i))
 		getProducts(c, sb.String(), products)
-		if i == 1 {
-			break
-		}
 	}
 }
 
