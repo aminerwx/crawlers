@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/aminerwx/crawlers/cmd/setupgame/crawler"
 	"github.com/aminerwx/crawlers/helper"
-	"github.com/aminerwx/crawlers/setupgame/crawler"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -28,16 +28,18 @@ func Runner() {
 
 func Init(products *[]crawler.Product) {
 	helper.Maybe(godotenv.Load())
-	_, err := migrate.New(
+	m, err := migrate.New(
 		"file://migration",
 		os.Getenv("DATABASE_URL"))
+	m.Up()
+
 	helper.Maybe(err)
 	// links := menu.GetMenu()
 	// combined_links := strings.Join(links, "\n")
 	// b := []byte(combined_links)
 	// helper.Maybe(os.WriteFile("ultrapc_links.txt", b, 0660))
 	// helper.Maybe(err)
-	// fmt.Println(len(articles))
+	fmt.Println("products found: ", len(*products))
 	InsertBulk(products, "components", os.Getenv("DATABASE_URL"))
 	// DUMP to database
 	//	fmt.Println(item)

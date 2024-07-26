@@ -47,7 +47,7 @@ func Crawler(linksFilePath string) ([]Article, error) {
 	var productData []Article
 	for _, url := range links {
 		pages, err := GetProductPages(url)
-		fmt.Println("total pages = ", pages)
+		fmt.Println("URL: ", url, "nbPages = ", pages)
 		helper.Maybe(err)
 		for i := 1; i <= pages; i++ {
 			var currentUrl strings.Builder
@@ -58,6 +58,7 @@ func Crawler(linksFilePath string) ([]Article, error) {
 			helper.Maybe(err)
 			productData = append(productData, articles...)
 		}
+		break
 	}
 	return productData, nil
 }

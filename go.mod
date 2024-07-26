@@ -1,6 +1,6 @@
 module github.com/aminerwx/crawlers
 
-go 1.21.6
+go 1.22.5
 
 require (
 	github.com/gocolly/colly v1.2.0

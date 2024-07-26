@@ -11,17 +11,18 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/joho/godotenv"
 
+	"github.com/aminerwx/crawlers/cmd/ultrapc/crawler"
 	"github.com/aminerwx/crawlers/helper"
-	"github.com/aminerwx/crawlers/ultrapc/crawler"
 	"github.com/jackc/pgx/v5"
 )
 
 func Runner() {
 	helper.Maybe(godotenv.Load())
-	_, err := migrate.New(
+	m, err := migrate.New(
 		"file://migration",
 		os.Getenv("DATABASE_URL"))
 	helper.Maybe(err)
+	m.Up()
 	// links := menu.GetMenu()
 	// combined_links := strings.Join(links, "\n")
 	// b := []byte(combined_links)

@@ -1,11 +1,15 @@
 package main
 
 import (
-	"github.com/aminerwx/crawlers/setupgame"
-	"github.com/aminerwx/crawlers/ultrapc"
+	"fmt"
+
+	"github.com/aminerwx/crawlers/cmd/atlasgaming"
 )
 
 func main() {
-	ultrapc.Runner()
-	setupgame.Runner()
+	// ultrapc.Runner()
+	// setupgame.Runner()
+	cat := atlasgaming.GetCategories()
+	fmt.Println(cat)
+	atlasgaming.Crawl(cat[0])
 }
